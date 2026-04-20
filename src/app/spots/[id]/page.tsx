@@ -4,6 +4,7 @@ import { use, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { defaultSpots } from '@/lib/spots/default-spots';
+import SpotMap from '@/components/spot-map';
 import type { Catch, Spot } from '@/lib/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -277,6 +278,17 @@ export default function SpotDetailPage({ params }: { params: Promise<{ id: strin
             <span className="text-xs text-slate-500">Best time: {spot.bestTime}</span>
           </div>
           <p className="text-sm leading-relaxed text-slate-400">{spot.description}</p>
+        </section>
+
+        {/* Embedded Map */}
+        <section className="animate-fade-in rounded-xl border border-[#1e3a5f] overflow-hidden" style={{ animationDelay: '50ms' }}>
+          <SpotMap
+            spots={[spot]}
+            height="200px"
+            center={[spot.lon, spot.lat]}
+            zoom={13}
+            singleSpot={true}
+          />
         </section>
 
         {/* Fishing Score */}

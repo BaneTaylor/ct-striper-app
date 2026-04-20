@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { defaultSpots } from '@/lib/spots/default-spots';
+import SpotMap from '@/components/spot-map';
 import type { Spot, SpotType } from '@/lib/types';
 
 // ── Region groupings ──────────────────────────────────────────────────────────
@@ -50,11 +51,11 @@ function groupByRegion(spots: typeof defaultSpots): Region[] {
 
 function typeBadge(type: string) {
   const colors: Record<string, { bg: string; text: string }> = {
-    jetty: { bg: 'bg-blue-500/15', text: 'text-blue-400' },
-    river_mouth: { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
-    beach_surf: { bg: 'bg-amber-500/15', text: 'text-amber-400' },
-    bridge: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
-    rocky_point: { bg: 'bg-rose-500/15', text: 'text-rose-400' },
+    jetty: { bg: 'bg-teal-500/15', text: 'text-teal-400' },
+    river_mouth: { bg: 'bg-blue-500/15', text: 'text-blue-400' },
+    beach_surf: { bg: 'bg-green-500/15', text: 'text-green-400' },
+    bridge: { bg: 'bg-amber-500/15', text: 'text-amber-400' },
+    rocky_point: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
     inlet: { bg: 'bg-cyan-500/15', text: 'text-cyan-400' },
     rocky_shore: { bg: 'bg-rose-500/15', text: 'text-rose-400' },
     tidal_flat: { bg: 'bg-sky-500/15', text: 'text-sky-400' },
@@ -206,11 +207,21 @@ function getRecommendation(type: string, currentTide: string, bestTime: string):
 
 // ── Add Custom Spot Modal ─────────────────────────────────────────────────────
 
-function AddSpotForm({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+function AddSpotForm({
+  onClose,
+  onAdded,
+  initialLat,
+  initialLon,
+}: {
+  onClose: () => void;
+  onAdded: () => void;
+  initialLat?: number;
+  initialLon?: number;
+}) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [lat, setLat] = useState('');
-  const [lon, setLon] = useState('');
+  const [lat, setLat] = useState(initialLat?.toFixed(6) ?? '');
+  const [lon, setLon] = useState(initialLon?.toFixed(6) ?? '');
   const [spotType, setSpotType] = useState<SpotType>('beach_surf');
   const [bestTide, setBestTide] = useState('any');
   const [bestTime, setBestTime] = useState('any');
@@ -386,12 +397,57 @@ function SpotCard({ spot, index }: { spot: typeof defaultSpots[0]; index: number
   );
 }
 
+// ── View Toggle ──────────────────────────────────────────────────────────────
+
+function ViewToggle({ view, onViewChange }: { view: 'map' | 'list'; onViewChange: (v: 'map' | 'list') => void }) {
+  return (
+    <div className="flex rounded-lg border border-[#1e3a5f] bg-[#0f1f3d] p-0.5">
+      <button
+        onClick={() => onViewChange('map')}
+        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+          view === 'map'
+            ? 'bg-teal-600 text-white'
+            : 'text-slate-400 hover:text-white'
+        }`}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+        Map
+      </button>
+      <button
+        onClick={() => onViewChange('list')}
+        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+          view === 'list'
+            ? 'bg-teal-600 text-white'
+            : 'text-slate-400 hover:text-white'
+        }`}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="8" y1="6" x2="21" y2="6" />
+          <line x1="8" y1="12" x2="21" y2="12" />
+          <line x1="8" y1="18" x2="21" y2="18" />
+          <line x1="3" y1="6" x2="3.01" y2="6" />
+          <line x1="3" y1="12" x2="3.01" y2="12" />
+          <line x1="3" y1="18" x2="3.01" y2="18" />
+        </svg>
+        List
+      </button>
+    </div>
+  );
+}
+
 // ── Main Spots Page ───────────────────────────────────────────────────────────
 
 export default function SpotsPage() {
+  const [view, setView] = useState<'map' | 'list'>('map');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [addingSpotOnMap, setAddingSpotOnMap] = useState(false);
+  const [pendingPin, setPendingPin] = useState<{ lng: number; lat: number } | null>(null);
   const [customSpots, setCustomSpots] = useState<Spot[]>([]);
   const [loadingCustom, setLoadingCustom] = useState(true);
+  const hasToken = typeof process !== 'undefined' && !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   const loadCustomSpots = useCallback(async () => {
     try {
@@ -413,6 +469,11 @@ export default function SpotsPage() {
     loadCustomSpots();
   }, [loadCustomSpots]);
 
+  // If no mapbox token, default to list view
+  useEffect(() => {
+    if (!hasToken) setView('list');
+  }, [hasToken]);
+
   const regions = groupByRegion(defaultSpots);
 
   // Convert custom spots to the format used by SpotCard
@@ -427,127 +488,170 @@ export default function SpotsPage() {
     description: s.description ?? '',
   }));
 
+  // All spots for the map
+  const allMapSpots = [...defaultSpots, ...customSpotsConverted];
+
+  function handleAddSpotClick() {
+    if (view === 'map' && hasToken) {
+      setAddingSpotOnMap(true);
+      setPendingPin(null);
+    } else {
+      setShowAddForm(true);
+    }
+  }
+
+  function handleMapClick(lngLat: { lng: number; lat: number }) {
+    if (addingSpotOnMap) {
+      setPendingPin(lngLat);
+      setAddingSpotOnMap(false);
+      setShowAddForm(true);
+    }
+  }
+
+  function handleCancelAddSpot() {
+    setAddingSpotOnMap(false);
+    setPendingPin(null);
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-[#0a1628] pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-[#1e3a5f] bg-[#0a1628]/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <h1 className="text-lg font-bold text-white">Spot Map</h1>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="min-h-[44px] rounded-lg bg-teal-600 px-4 text-sm font-medium text-white transition-colors hover:bg-teal-500"
-          >
-            + Add Spot
-          </button>
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold text-white">Spot Map</h1>
+            <ViewToggle view={view} onViewChange={setView} />
+          </div>
+          <div className="flex items-center gap-2">
+            {addingSpotOnMap && (
+              <button
+                onClick={handleCancelAddSpot}
+                className="min-h-[44px] rounded-lg border border-[#1e3a5f] px-3 text-sm font-medium text-slate-400 transition-colors hover:text-white"
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              onClick={handleAddSpotClick}
+              className="min-h-[44px] rounded-lg bg-teal-600 px-4 text-sm font-medium text-white transition-colors hover:bg-teal-500"
+            >
+              + Add Spot
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* CT Coastline SVG Banner */}
-      <div className="mx-auto w-full max-w-2xl px-4 pt-4">
-        <div className="relative overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#0f1f3d] p-4">
-          <svg viewBox="0 0 400 120" className="w-full" xmlns="http://www.w3.org/2000/svg">
-            {/* Simplified CT south coastline */}
-            <path
-              d="M 10,70 Q 30,65 50,68 Q 80,72 110,66 Q 140,60 170,64 Q 200,68 230,62 Q 260,58 290,63 Q 320,67 350,60 Q 370,56 390,58"
-              fill="none"
-              stroke="#1e3a5f"
-              strokeWidth="2"
-            />
-            {/* Water area below */}
-            <path
-              d="M 10,70 Q 30,65 50,68 Q 80,72 110,66 Q 140,60 170,64 Q 200,68 230,62 Q 260,58 290,63 Q 320,67 350,60 Q 370,56 390,58 L 390,120 L 10,120 Z"
-              fill="#14b8a6"
-              opacity="0.06"
-            />
-            {/* Land area above */}
-            <path
-              d="M 10,70 Q 30,65 50,68 Q 80,72 110,66 Q 140,60 170,64 Q 200,68 230,62 Q 260,58 290,63 Q 320,67 350,60 Q 370,56 390,58 L 390,0 L 10,0 Z"
-              fill="#162a4a"
-              opacity="0.3"
-            />
+      {/* Map View */}
+      {view === 'map' && (
+        <div className="relative">
+          <SpotMap
+            spots={allMapSpots}
+            height="calc(100vh - 180px)"
+            onSpotClick={(spot) => {
+              if ('id' in spot) {
+                window.location.href = `/spots/${spot.id}`;
+              }
+            }}
+          />
 
-            {/* Spot pins - approximate positions along the coast */}
-            {/* Western CT */}
-            <circle cx="20" cy="68" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="55" cy="70" r="3" fill="#14b8a6" opacity="0.8" />
-            {/* Central CT */}
-            <circle cx="115" cy="65" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="160" cy="63" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="185" cy="66" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="210" cy="66" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="230" cy="62" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="245" cy="61" r="3" fill="#14b8a6" opacity="0.8" />
-            {/* Eastern CT */}
-            <circle cx="290" cy="63" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="310" cy="65" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="330" cy="63" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="350" cy="60" r="3" fill="#14b8a6" opacity="0.8" />
-            <circle cx="375" cy="57" r="3" fill="#14b8a6" opacity="0.8" />
-
-            {/* Labels */}
-            <text x="30" y="95" fill="#94a3b8" fontSize="9" fontFamily="system-ui">Western</text>
-            <text x="160" y="95" fill="#94a3b8" fontSize="9" fontFamily="system-ui">Central</text>
-            <text x="320" y="95" fill="#94a3b8" fontSize="9" fontFamily="system-ui">Eastern</text>
-
-            {/* LI Sound label */}
-            <text x="170" y="110" fill="#14b8a6" fontSize="8" fontFamily="system-ui" opacity="0.5">Long Island Sound</text>
-          </svg>
-          <div className="mt-1 text-center text-[10px] text-slate-600">
-            {defaultSpots.length} fishing spots along the CT coastline
+          {/* Map legend */}
+          <div className="absolute bottom-4 left-4 z-10 rounded-lg border border-[#1e3a5f] bg-[#0a1628]/90 px-3 py-2 backdrop-blur-sm">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              {[
+                { type: 'jetty', color: '#14b8a6', label: 'Jetty' },
+                { type: 'river_mouth', color: '#3b82f6', label: 'River Mouth' },
+                { type: 'beach_surf', color: '#22c55e', label: 'Beach' },
+                { type: 'bridge', color: '#f59e0b', label: 'Bridge' },
+                { type: 'rocky_point', color: '#a855f7', label: 'Rocky Point' },
+                { type: 'inlet', color: '#06b6d4', label: 'Inlet' },
+              ].map(({ color, label }) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-2.5 w-2.5 rounded-full"
+                    style={{ background: color, boxShadow: `0 0 4px ${color}88` }}
+                  />
+                  <span className="text-[10px] text-slate-400">{label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Spot List by Region */}
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-4">
-        {regions.map((region) => (
-          <section key={region.label} className="mb-6">
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              {region.label}
-            </h2>
-            <div className="space-y-2">
-              {region.spots.map((spot, i) => (
-                <SpotCard key={spot.name} spot={spot} index={i} />
-              ))}
-            </div>
-          </section>
-        ))}
-
-        {/* Custom Spots */}
-        <section className="mb-6">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Custom Spots
-          </h2>
-          {loadingCustom ? (
-            <div className="space-y-2">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          ) : customSpotsConverted.length > 0 ? (
-            <div className="space-y-2">
-              {customSpotsConverted.map((spot, i) => (
-                <SpotCard key={spot.name + i} spot={spot} index={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-[#1e3a5f] bg-[#0f1f3d]/50 p-6 text-center">
-              <p className="text-sm text-slate-500">No custom spots yet</p>
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="mt-2 text-sm font-medium text-teal-400 hover:text-teal-300"
-              >
-                Add your first spot
-              </button>
+          {/* No token fallback message shown above the list */}
+          {!hasToken && (
+            <div className="mx-auto max-w-2xl px-4 py-3">
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-center">
+                <p className="text-sm text-amber-300">Map requires Mapbox token</p>
+                <p className="mt-1 text-xs text-slate-500">Set NEXT_PUBLIC_MAPBOX_TOKEN in your environment to enable the interactive map</p>
+              </div>
             </div>
           )}
-        </section>
-      </main>
+        </div>
+      )}
+
+      {/* List View */}
+      {view === 'list' && (
+        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-4">
+          {!hasToken && (
+            <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-center">
+              <p className="text-sm text-amber-300">Map requires Mapbox token</p>
+              <p className="mt-1 text-xs text-slate-500">Set NEXT_PUBLIC_MAPBOX_TOKEN to enable the interactive map view</p>
+            </div>
+          )}
+
+          {regions.map((region) => (
+            <section key={region.label} className="mb-6">
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                {region.label}
+              </h2>
+              <div className="space-y-2">
+                {region.spots.map((spot, i) => (
+                  <SpotCard key={spot.name} spot={spot} index={i} />
+                ))}
+              </div>
+            </section>
+          ))}
+
+          {/* Custom Spots */}
+          <section className="mb-6">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Custom Spots
+            </h2>
+            {loadingCustom ? (
+              <div className="space-y-2">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : customSpotsConverted.length > 0 ? (
+              <div className="space-y-2">
+                {customSpotsConverted.map((spot, i) => (
+                  <SpotCard key={spot.name + i} spot={spot} index={i} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-[#1e3a5f] bg-[#0f1f3d]/50 p-6 text-center">
+                <p className="text-sm text-slate-500">No custom spots yet</p>
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="mt-2 text-sm font-medium text-teal-400 hover:text-teal-300"
+                >
+                  Add your first spot
+                </button>
+              </div>
+            )}
+          </section>
+        </main>
+      )}
 
       {/* Add Spot Modal */}
       {showAddForm && (
         <AddSpotForm
-          onClose={() => setShowAddForm(false)}
+          onClose={() => {
+            setShowAddForm(false);
+            setPendingPin(null);
+          }}
           onAdded={loadCustomSpots}
+          initialLat={pendingPin?.lat}
+          initialLon={pendingPin?.lng}
         />
       )}
     </div>

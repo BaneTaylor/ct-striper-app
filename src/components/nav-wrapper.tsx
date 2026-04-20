@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import NavBar from './nav-bar';
 
-const AUTH_ROUTES = ['/dashboard', '/spots', '/log', '/forecast', '/menu', '/lures', '/regulations', '/settings', '/river', '/crew', '/solunar'];
+const AUTH_ROUTES = ['/dashboard', '/spots', '/log', '/forecast', '/menu', '/lures', '/regulations', '/settings', '/river', '/crew', '/solunar', '/tips'];
 
 export default function NavWrapper() {
   const pathname = usePathname();

@@ -62,10 +62,13 @@ export default function NavBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#1e3a5f] bg-[#0a1628]/95 backdrop-blur-md">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#1e3a5f]/40 bg-[#0a1628]/80 backdrop-blur-xl">
+      {/* Top gradient border line */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#14b8a6]/30 to-transparent" />
+
       <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1">
         {navItems.map((item) => {
-          const moreSubPaths = ['/menu', '/lures', '/regulations', '/settings'];
+          const moreSubPaths = ['/menu', '/lures', '/regulations', '/settings', '/tips'];
           const active =
             item.icon === 'more'
               ? moreSubPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))
@@ -74,12 +77,16 @@ export default function NavBar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1.5 transition-colors ${
+              className={`relative flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1.5 transition-all duration-200 ${
                 active ? 'text-[#14b8a6]' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <NavIcon icon={item.icon} active={active} />
               <span className="text-[10px] font-medium">{item.label}</span>
+              {/* Active indicator - glowing teal dot */}
+              {active && (
+                <span className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#14b8a6]" style={{ boxShadow: '0 0 6px #14b8a6, 0 0 12px rgba(20, 184, 166, 0.3)' }} />
+              )}
             </Link>
           );
         })}
