@@ -1,0 +1,17 @@
+export const defaultSpots = [
+  { name: "Hammonasset Beach State Park", lat: 41.2584, lon: -72.5547, type: "beach_surf", bestTide: "outgoing", bestTime: "dawn", noaaStation: "8465705", description: "Long sandy beach with good surf casting. Best at the points and near the jetty." },
+  { name: "Meigs Point Jetty", lat: 41.2555, lon: -72.5465, type: "jetty", bestTide: "incoming", bestTime: "dusk", noaaStation: "8465705", description: "Rock jetty at the east end of Hammonasset. Fish the current seams on incoming tide." },
+  { name: "Clinton Town Beach", lat: 41.2636, lon: -72.5276, type: "beach_surf", bestTide: "outgoing", bestTime: "any", noaaStation: "8465705", description: "Sandy beach with structure. Fish the sandbars and troughs." },
+  { name: "Harvey's Beach", lat: 41.2617, lon: -72.6072, type: "beach_surf", bestTide: "any", bestTime: "dawn", noaaStation: "8465705", description: "Protected beach in Madison. Good for schoolies in spring." },
+  { name: "CT River Mouth - Old Lyme", lat: 41.2711, lon: -72.3431, type: "river_mouth", bestTide: "outgoing", bestTime: "night", noaaStation: "8461490", description: "Where the CT River meets Long Island Sound. Monster bass on outgoing tide at night." },
+  { name: "New Haven Harbor", lat: 41.2332, lon: -72.9081, type: "inlet", bestTide: "incoming", bestTime: "dusk", noaaStation: "8465705", description: "Deep harbor with structure. Good year-round. Fish the channel edges." },
+  { name: "Housatonic River Mouth", lat: 41.1747, lon: -73.1045, type: "river_mouth", bestTide: "outgoing", bestTime: "night", noaaStation: "8467150", description: "Productive river mouth. Outgoing tide pushes bait into the sound." },
+  { name: "Thames River - New London", lat: 41.3550, lon: -72.0900, type: "river_mouth", bestTide: "outgoing", bestTime: "night", noaaStation: "8461490", description: "Deep river with strong current. Bridge lights attract bait and bass." },
+  { name: "I-95 Bridge - CT River", lat: 41.2778, lon: -72.3506, type: "bridge", bestTide: "any", bestTime: "night", noaaStation: "8461490", description: "Fish the shadow lines at night. Stripers ambush bait in the light/dark edges." },
+  { name: "Westbrook Town Beach", lat: 41.2600, lon: -72.4481, type: "beach_surf", bestTide: "outgoing", bestTime: "dawn", noaaStation: "8465705", description: "Jetty and beach combo. Work the jetty tip on moving water." },
+  { name: "Rocky Neck State Park", lat: 41.2684, lon: -72.2308, type: "rocky_point", bestTide: "incoming", bestTime: "dawn", noaaStation: "8461490", description: "Rocky shore with deep water access. Fish the rocks on incoming tide." },
+  { name: "Niantic River", lat: 41.3217, lon: -72.1931, type: "river_mouth", bestTide: "outgoing", bestTime: "dusk", noaaStation: "8461490", description: "Smaller river mouth. Great for spring run and fall migration." },
+  { name: "CT River - Haddam", lat: 41.4567, lon: -72.5017, type: "river_mouth", bestTide: "any", bestTime: "night", noaaStation: "8461490", description: "Upriver spot. Good during spring shad run. Stripers follow the bait." },
+  { name: "Housatonic River - Derby", lat: 41.3230, lon: -73.0890, type: "river_mouth", bestTide: "any", bestTime: "dawn", noaaStation: "8467150", description: "Fresh/saltwater transition zone. Herring and shad runs draw big bass." },
+  { name: "Greenwich Point", lat: 41.0044, lon: -73.5647, type: "rocky_point", bestTide: "incoming", bestTime: "dawn", noaaStation: "8467150", description: "Western CT. Rocky shoreline with good structure for ambush feeding." },
+];
