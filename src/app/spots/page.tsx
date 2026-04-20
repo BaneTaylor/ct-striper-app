@@ -447,7 +447,7 @@ export default function SpotsPage() {
   const [pendingPin, setPendingPin] = useState<{ lng: number; lat: number } | null>(null);
   const [customSpots, setCustomSpots] = useState<Spot[]>([]);
   const [loadingCustom, setLoadingCustom] = useState(true);
-  const hasToken = typeof process !== 'undefined' && !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const hasToken = true; // Using Leaflet (free, no token needed)
 
   const loadCustomSpots = useCallback(async () => {
     try {
