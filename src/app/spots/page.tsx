@@ -478,6 +478,7 @@ export default function SpotsPage() {
 
   // Convert custom spots to the format used by SpotCard
   const customSpotsConverted = customSpots.map((s) => ({
+    id: s.id,
     name: s.name,
     lat: s.latitude,
     lon: s.longitude,

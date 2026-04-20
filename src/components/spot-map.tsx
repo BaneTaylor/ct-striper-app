@@ -110,7 +110,7 @@ export default function SpotMap({
             <div style="display: inline-block; background: ${color}20; color: ${color}; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${spotType.replace('_', ' ')}</div>
             ${spot.description ? `<div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">${spot.description}</div>` : ''}
             <div style="display: flex; gap: 6px;">
-              <a href="/spots/${'id' in spot ? spot.id : spot.name.toLowerCase().replace(/\s+/g, '-')}" style="flex: 1; text-align: center; padding: 6px 0; background: #14b8a6; color: #0a1628; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">Details</a>
+              <a href="/spots/${'id' in spot ? spot.id : ''}" style="flex: 1; text-align: center; padding: 6px 0; background: #14b8a6; color: #0a1628; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">Details</a>
               <a href="/log/new?spot=${'id' in spot ? spot.id : ''}" style="flex: 1; text-align: center; padding: 6px 0; background: #1e3a5f; color: #e2e8f0; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">Log Catch</a>
             </div>
           </div>

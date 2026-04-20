@@ -118,22 +118,23 @@ export default function SpotDetailPage({ params }: { params: Promise<{ id: strin
 
   // Find spot from defaults or DB
   useEffect(() => {
-    const found = defaultSpots.find((s) => s.name === decodedId);
+    const found = defaultSpots.find((s) => s.id === decodedId || s.name === decodedId);
     if (found) {
       setSpot(found);
       setNotes(found.description);
     } else {
-      // Try to find in Supabase
+      // Try to find in Supabase by UUID
       const supabase = createClient();
       supabase
         .from('spots')
         .select('*')
-        .eq('name', decodedId)
+        .eq('id', decodedId)
         .single()
         .then(({ data }) => {
           if (data) {
             setDbSpot(data);
             setSpot({
+              id: data.id,
               name: data.name,
               lat: data.latitude,
               lon: data.longitude,
