@@ -8,7 +8,7 @@ const navItems = [
   { href: '/spots', label: 'Spots', icon: 'pin' },
   { href: '/log', label: 'Log', icon: 'edit' },
   { href: '/forecast', label: 'Forecast', icon: 'chart' },
-  { href: '/menu', label: 'Menu', icon: 'menu' },
+  { href: '/menu', label: 'More', icon: 'more' },
 ];
 
 function NavIcon({ icon, active }: { icon: string; active: boolean }) {
@@ -45,12 +45,12 @@ function NavIcon({ icon, active }: { icon: string; active: boolean }) {
           <line x1="6" y1="20" x2="6" y2="14" />
         </svg>
       );
-    case 'menu':
+    case 'more':
       return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="18" x2="21" y2="18" />
+          <circle cx="12" cy="12" r="1" />
+          <circle cx="12" cy="5" r="1" />
+          <circle cx="12" cy="19" r="1" />
         </svg>
       );
     default:
@@ -65,7 +65,11 @@ export default function NavBar() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#1e3a5f] bg-[#0a1628]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1">
         {navItems.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + '/');
+          const moreSubPaths = ['/menu', '/lures', '/regulations', '/settings'];
+          const active =
+            item.icon === 'more'
+              ? moreSubPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))
+              : pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link
               key={item.href}
